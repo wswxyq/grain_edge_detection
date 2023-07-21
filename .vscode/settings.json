@@ -1,0 +1,5 @@
+{
+    "python.defaultInterpreterPath": "/home/oem/miniconda3/envs/GED/bin/python",
+    "python.linting.pylintPath": "/home/oem/miniconda3/envs/GED/bin/pylint",
+    "python.linting.pylintArgs": ["--generated-members"]
+}

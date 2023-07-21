@@ -6,15 +6,16 @@ from segment_anything import sam_model_registry, SamPredictor
 import torch.nn as nn
 
 
-imagepath = "IMAGES/AP1O4/000001_RT_01_SemAdcDef1_Dedicated_BSD_RID_000001.tif"
+imagepath = "../synthetic/test.png"
 image = cv2.imread(imagepath)
 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+print("image size:", image.shape)
 
 
-sam_checkpoint = "model/sam_vit_h_4b8939.pth"
+sam_checkpoint = "/home/oem/projects/sam/sam_vit_h_4b8939.pth"
 model_type = "vit_h"
 
-device = "cuda:5"
+device = "cuda"
 
 sam = sam_model_registry[model_type](checkpoint=sam_checkpoint)
 sam.to(device=device)
@@ -24,10 +25,8 @@ predictor = SamPredictor(sam)
 predictor.set_image(image)
 
 
-num_seeds = 800
-seeds = torch.rand(
-    num_seeds, 1, 2, device=predictor.device
-)
+num_seeds = 700
+seeds = torch.rand(num_seeds, 1, 2, device=predictor.device)
 seeds[:, :, 0] *= image.shape[0]
 seeds[:, :, 1] *= image.shape[1]
 
@@ -42,7 +41,7 @@ masks, scores, _ = predictor.predict_torch(
 
 
 cut = 0.85  # cut on the score
-area_cut = 2500  # cut on area (unit: pixels)
+area_cut = 500  # cut on area (unit: pixels)
 scores_w_cut = (scores > cut).clone().long() * scores  # set score below cut to be zero
 
 
@@ -66,7 +65,7 @@ reduced_pixel_count_by_score = max_score_map.unique(return_counts=True)
 
 # now fill the holes with 0
 
-window_size = 25  # should be an odd number
+window_size = 11  # should be an odd number
 m = nn.MaxPool2d(window_size, stride=1, padding=window_size // 2)
 holes = m(max_score_map[None, :, :])[0]
 
@@ -96,9 +95,9 @@ for i in range(len(reduced_pixel_count_by_score[0])):
 
 
 close_grain_edge_enhance_map = torch.tensor(edge_img, dtype=float)
-imax = close_grain_edge_enhance_map.shape[1] - 1
-jmax = close_grain_edge_enhance_map.shape[0] - 1
-linewd = 8
+imax = close_grain_edge_enhance_map.shape[1]
+jmax = close_grain_edge_enhance_map.shape[0]
+linewd = 4
 for i, j in zip(x, y):
     close_grain_edge_enhance_map[
         max(j - linewd // 2, 0) : min(j + linewd // 2, jmax),
@@ -120,4 +119,4 @@ plt.imshow(close_grain_edge_enhance_map, cmap="gray")
 ax = plt.gca()
 plt.title("Enhanced Edge plot"), plt.xticks([]), plt.yticks([])
 # white->1, black->0
-plt.savefig("asout/testplot.png")
+plt.savefig("testplot.png")
