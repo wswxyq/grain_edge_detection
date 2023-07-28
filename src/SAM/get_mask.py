@@ -10,7 +10,7 @@ from segment_anything import sam_model_registry, SamPredictor
 
 
 def mask_from_prompt(
-    image: np.ndarray, sam_checkpoint, model_type, num_seeds=400, batch_size=200
+    image: np.ndarray, sam_checkpoint, model_type, num_seeds=400, batch_size=200, device = None
 ):
     """
     Get mask from prompt.
@@ -26,15 +26,13 @@ def mask_from_prompt(
 
     print("Image size:", image.shape)
 
-    device = "cpu"
-    if torch.cuda.is_available():
-        device = "cuda"
-        print("Using GPU")
-    else:
-        print("Using CPU")
+    _device=device
+
+    if _device is None:
+        _device = "cpu"
 
     sam = sam_model_registry[model_type](checkpoint=sam_checkpoint)
-    sam.to(device=device)
+    sam.to(device=_device)
 
     predictor = SamPredictor(sam)
 
