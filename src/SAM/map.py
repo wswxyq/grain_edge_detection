@@ -60,7 +60,7 @@ def make_score_map(masks, scores, score_cut=0.85, area_cut=250):
                 color=float(reduced_pixel_count_by_score[0][i].cpu().numpy()),
                 thickness=cv2.FILLED,
             )
-
+    print("number of contours in score map:", len(contour_list))
     return final_map, contour_list
 
 
@@ -88,4 +88,5 @@ def make_hole_map(fmap, window_size=7, area_cut=50):
                 thickness=cv2.FILLED,
             )
             hole_contour_list.append(c)
+    print("number of contours in hole map:", len(hole_contour_list))
     return hole_map, hole_contour_list

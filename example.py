@@ -7,6 +7,8 @@ from segment_anything import sam_model_registry, SamPredictor
 import torch.nn as nn
 import src.SAM.get_mask as get_mask
 import src.SAM.map as map
+import src.plot.colors as colors
+
 
 imagepath = "./sem3.png"
 image = cv2.imread(imagepath)
@@ -20,7 +22,12 @@ batch_size = 200
 
 # %%
 masks, scores = get_mask.mask_from_prompt(
-    image, sam_checkpoint, model_type, num_seeds=num_seeds, batch_size=batch_size
+    image,
+    sam_checkpoint,
+    model_type,
+    num_seeds=num_seeds,
+    batch_size=batch_size,
+    device="cuda",
 )
 print("from SAM:", masks.shape, scores.shape)
 
@@ -33,6 +40,11 @@ fmap, cl = map.make_score_map(masks, scores, score_cut=cut, area_cut=area_cut)
 
 # %%
 hmap, hcl = map.make_hole_map(fmap, window_size=7)
+
+# %%
+allmap = fmap + hmap
+rgbmap = colors.floatIMG2RGB(allmap)
+
 # %%
 plt.figure(figsize=(16, 8))
 
@@ -45,8 +57,10 @@ plt.title("Original Image"), plt.xticks([]), plt.yticks([])
 plt.subplot(122)
 plt.axis("off")
 plt.axis("equal")
-plt.imshow(fmap + hmap, cmap="gray")
+plt.imshow(rgbmap, cmap="gray")
 ax = plt.gca()
 plt.title("Enhanced Edge plot"), plt.xticks([]), plt.yticks([])
 
 plt.savefig("testplot.png")
+
+# %%
